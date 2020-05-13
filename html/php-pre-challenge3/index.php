@@ -72,7 +72,7 @@ for($i  = 0; $i < count($save); $i++){
 }
 
 if(is_null($answers)){
-    $answers = 'No combination';
+    $answers = [];
 }
 
 //答えをjson形式で出力
