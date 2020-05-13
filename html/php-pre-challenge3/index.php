@@ -6,7 +6,7 @@ $limit = $_GET['target'];
 if (!is_numeric($limit) || $limit <= 0 || preg_match('/^([1-9]\d*|0)\.(\d+)?$/', $limit)) {
   // echo '400 Bad Request';
   http_response_code(400);
-  echo json_encode('400 Bad Request');
+  echo json_encode('400 Bad Request :' . $limit);
   exit();
 }
 
