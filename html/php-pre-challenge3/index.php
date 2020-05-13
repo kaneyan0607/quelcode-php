@@ -4,7 +4,6 @@
 $limit = $_GET['target'];
 //1以上の整数ではない場合は、HTTP レスポンスステータスコード[400]を返却 ↓0以上の整数のみ（正規表現:ゼロ埋めなし）
 if (!is_numeric($limit) || $limit <= 0 || preg_match('/^([1-9]\d*|0)\.(\d+)?$/', $limit)) {
-  // echo '400 Bad Request';
   http_response_code(400);
   echo json_encode('400 Bad Request :' . $limit);
   exit();
