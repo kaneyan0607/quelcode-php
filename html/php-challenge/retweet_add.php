@@ -2,36 +2,52 @@
 session_start();
 require('dbconnect.php');
 
-//投稿を調査
+//ログインしているユーザーのユーザーidを取得
+$members = $db->prepare('SELECT * FROM members WHERE id=?');
+$members->execute(array($_SESSION['id']));
+$member = $members->fetch();
+
+//投稿を調査(リツイートするメッセージ内容)
 $retweetresponse = $db->prepare('SELECT m.name, m.picture, p.* FROM members m, posts p WHERE m.id=p.member_id AND p.id=?');
-$retweetresponse->execute(array($_REQUEST['res']));
+$retweetresponse->execute(array($_REQUEST['retweetRes']));
 $table = $retweetresponse->fetch();
 $retweet_message = $table['message'];
-$retweet_message_id = $table['member_id'];
-print_r($table);
-echo '/';
-print_r($retweet_message);
-echo '/';
-print_r($retweet_message_id);
-echo '/';
+$retweet_messagepost = $table['retweet_post_id']; //リツイート元の投稿id（リツイートされた投稿をリツイートする場合値が入る）
+echo 'リツイートid:';
+print_r($retweet_messagepost);
 
-if (isset($_SESSION['id'])) {
+if (isset($_REQUEST['retweetRes']) && ($retweet_messagepost == 0)) { //リツイート元からのリツイートをするためリツイート元のidを入れる
+
     //リツイートを投稿
-    $like_add = $db->prepare('INSERT INTO posts SET message=?,  member_id=?, retweet_member_id=?, retweet_post_id=?, created=NOW()');
-    $like_add->execute(array( //PHP ExecuteコマンドはPHPスクリプトや関数を実行するために使用
+    $retweet_db = $db->prepare('INSERT INTO posts SET member_id=?, message=?, retweet_post_id=?, created=NOW()');
+    $retweet_db->execute(array(
+        $member['id'], //DBからとってきたidの方が正確なので$SESSIONではない
         $retweet_message,
-        $retweet_message_id,
-        $_SESSION['id'], //リツイートをしたメンバーのid
-        $_REQUEST['res'] //リツイートをするツイートのid
+        $_REQUEST['retweetRes']
     ));
-}
+    echo '/リツイートするメンバーのid:';
+    print_r($member['id']);
+    echo '/リツイート元のメッセージ:';
+    print_r($retweet_message);
+    echo '/リツイート元の投稿id:';
+    print_r($_REQUEST['retweetRes']);
+    echo '/INSERT成功';
+    //header('Location: index.php');
+    //exit();
+} else if (isset($_REQUEST['retweetRes']) && ($retweet_messagepost > 0)) { //リツイートされた投稿をリツイートする際、リツート元の投稿idをretweet_post_idカラムに入れる。
 
-echo '/';
-echo 'リツイートをする投稿のid', $_REQUEST['res'];
-echo '/';
-echo 'リツイートメンバーのid', $_SESSION['id'];
-echo '/';
-echo '成功';
-//header('Location: index.php'); //postの処理が行われた後、index.phpに戻る。
-//exit();
-//$_SESSIONは、PHPの定義済み変数のセッション変数です。この変数は、配列型の配列変数であり、現在のセッションに登録されている値から渡されたデータが格納されている変数です。
+    //リツイートを投稿
+    $retweet_db = $db->prepare('INSERT INTO posts SET member_id=?, message=?, retweet_post_id=?, created=NOW()');
+    $retweet_db->execute(array(
+        $member['id'], //DBからとってきたidの方が正確なので$SESSIONではない
+        $retweet_message,
+        $retweet_messagepost
+    ));
+    echo '/※リツイートのリツイートを投稿。リツイートするメンバーのid:';
+    print_r($member['id']);
+    echo '/リツイート元のメッセージ:';
+    print_r($retweet_message);
+    echo '/リツイート元の投稿id:';
+    print_r($retweet_messagepost);
+    echo '/INSERT成功';
+}

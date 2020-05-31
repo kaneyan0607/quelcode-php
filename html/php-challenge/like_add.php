@@ -9,6 +9,12 @@ if (isset($_SESSION['id'])) {
         $_GET['id'], //いいねをする投稿されたツイートのid
         $_SESSION['id'] //いいねをしたメンバーのid
     ));
+} else if (isset($_SESSION['retweet_post_id'])) {
+    $like_add = $db->prepare('INSERT INTO likes SET liked_post_id=?, pressed_member_id=?, created=NOW()');
+    $like_add->execute(array( //PHP ExecuteコマンドはPHPスクリプトや関数を実行するために使用
+        $_GET['retweet_post_id'], //いいねをする投稿されたツイートのid
+        $_SESSION['id'] //いいねをしたメンバーのid
+    ));
 }
 
 //echo 'いいねをする投稿のid', $_GET['id'];
