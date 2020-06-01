@@ -25,7 +25,7 @@ CREATE TABLE `likes` (
   `liked_post_id` int(11) NOT NULL,
   `pressed_member_id` int(11) NOT NULL,
   `created` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 CREATE TABLE `prechallenge3` (
       `value` int(11) NOT NULL
