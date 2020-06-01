@@ -18,7 +18,7 @@ if (isset($_SESSION['id'])) {
             $_SESSION['id'], //ログインしているメンバーのid
             $_GET['post_id'] //リツイートを削除するツイートのid
         ));
-    } else if (isset($_GET['retweet_orig'])) { //リツイートした投稿自身を削除
+    } else { //リツイートした投稿自身を削除
 
 
         $like_add = $db->prepare('DELETE FROM posts WHERE member_id=? AND posts.id=?');

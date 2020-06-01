@@ -19,7 +19,7 @@ if (isset($_SESSION['id'])) {
             $retweet_message,
             $_GET['post_id']
         ));
-    } else if (isset($_GET['post_id']) && ($retweet_messagepost > 0)) { //リツイートされた投稿をリツイートする際、リツート元の投稿idをretweet_post_idカラムに入れる。
+    } else { //リツイートされた投稿をリツイートする際、リツート元の投稿idをretweet_post_idカラムに入れる。
 
         //リツイートを投稿
         $retweet_db = $db->prepare('INSERT INTO posts SET member_id=?, message=?, retweet_post_id=?, created=NOW()');

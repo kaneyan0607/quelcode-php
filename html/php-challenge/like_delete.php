@@ -10,7 +10,7 @@ if (isset($_SESSION['id'])) {
             $_GET['post_id'], //いいねをする投稿されたツイートのid
             $_SESSION['id'] //いいねをしたメンバーのid
         ));
-    } elseif (isset($_GET['retweet_post_id'])) {
+    } else {
         $like_add = $db->prepare('DELETE FROM likes WHERE liked_post_id=? AND pressed_member_id=?');
         $like_add->execute(array( //PHP ExecuteコマンドはPHPスクリプトや関数を実行するために使用
             $_GET['retweet_post_id'], //リツイートにいいねを消す場合のリツイート元のツイートのid
