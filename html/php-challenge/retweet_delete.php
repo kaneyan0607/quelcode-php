@@ -10,16 +10,14 @@ $retweet_message = $table['message'];
 $retweet_messagepost = $table['retweet_post_id']; //リツイート元の投稿id（リツイートされた投稿をリツイートする場合値が入る）
 
 if (isset($_SESSION['id'])) {
-    if (isset($_GET['post_id'])) { //リツイート元でリツイート先を削除
-
+    if ((isset($_GET['post_id'])) && (preg_match('/^\d+$/', $_GET['post_id']))) { //リツイート元でリツイート先を削除
 
         $like_add = $db->prepare('DELETE FROM posts WHERE member_id=? AND retweet_post_id=?');
         $like_add->execute(array(
             $_SESSION['id'], //ログインしているメンバーのid
             $_GET['post_id'] //リツイートを削除するツイートのid
         ));
-    } else { //リツイートした投稿自身を削除
-
+    } elseif (preg_match('/^\d+$/', $_GET['retweet_orig'])) { //リツイートした投稿自身を削除
 
         $like_add = $db->prepare('DELETE FROM posts WHERE member_id=? AND posts.id=?');
         $like_add->execute(array(

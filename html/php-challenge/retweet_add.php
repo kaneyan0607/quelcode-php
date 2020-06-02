@@ -9,7 +9,7 @@ $table = $retweetresponse->fetch();
 $retweet_message = $table['message']; //リツイート元の投稿されたメッセージ
 $retweet_messagepost = $table['retweet_post_id']; //リツイート元の投稿id（リツイートされた投稿をリツイートする場合値が入る）
 
-if (isset($_SESSION['id'])) {
+if ((isset($_SESSION['id'])) && (preg_match('/^\d+$/', $_GET['post_id']))) {
     if (isset($_GET['post_id']) && ($retweet_messagepost == 0)) { //リツイート元からのリツイートをするためリツイート元のidを入れる
 
         //リツイートを投稿
