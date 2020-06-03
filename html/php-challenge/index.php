@@ -60,25 +60,24 @@ if (isset($_REQUEST['res'])) { //Reをクリックしたら
 }
 
 
-//※※追加機能いいね※※　自分がいいねした投稿の情報を取得する※※　likesテーブルからメッセージIDごとのいいねされた件数を取得する。メッセージIDごとにいいねされた件数を付加した状態に置き換える
-$likeMessage_db = $db->prepare('SELECT likes.id, liked_post_id FROM likes WHERE pressed_member_id=?'); //SQLの雛形を作ってる。
-$likeMessage_db->bindParam(1, $member['id'], PDO::PARAM_INT); ////bindparamで順次させている。（１番目はこれ、２番目はこれみたいな、、、）SQLの?の可変の部分に値を渡して置換してくれる。
-$likeMessage_db->execute(); //実行
-$likeMessages_db = $likeMessage_db->fetchAll();
+//※※追加機能いいね※※　自分がいいねした投稿の情報を取得する※※
+$likeMessageDb = $db->prepare('SELECT likes.id, liked_post_id FROM likes WHERE pressed_member_id=?');
+$likeMessageDb->bindParam(1, $member['id'], PDO::PARAM_INT);
+$likeMessageDb->execute();
+$likeMessagesDb = $likeMessageDb->fetchAll();
 //※※追加機能 いいねここまで※※
 
 
-//※追加機能リツイート※　
-//※現在ログインしているユーザのリツイート情報。
-$retweetMessage_db = $db->prepare('SELECT posts.id, retweet_post_id FROM posts WHERE member_id=? AND retweet_post_id'); //SQLの雛形を作ってる。
-$retweetMessage_db->bindParam(1, $member['id'], PDO::PARAM_INT); ////bindparamで順次させている。（１番目はこれ、２番目はこれみたいな、、、）SQLの?の可変の部分に値を渡して置換してくれる。
-$retweetMessage_db->execute(); //実行
-$retweetMessages_db = $retweetMessage_db->fetchALL();
+//※追加機能リツイート※　現在ログインしているユーザのリツイート情報。
+$retweetMessageDb = $db->prepare('SELECT posts.id, retweet_post_id FROM posts WHERE member_id=? AND retweet_post_id'); //SQLの雛形を作ってる。
+$retweetMessageDb->bindParam(1, $member['id'], PDO::PARAM_INT); ////bindparamで順次させている。（１番目はこれ、２番目はこれみたいな、、、）SQLの?の可変の部分に値を渡して置換してくれる。
+$retweetMessageDb->execute(); //実行
+$retweetMessagesDb = $retweetMessageDb->fetchALL();
 
-//全てのリツイート情報の取得（GUI）
-$all_retweet = $db->query('SELECT m.name, m.picture, p.* FROM members m, posts p WHERE m.id=p.member_id ORDER BY p.created DESC');
-$all_retweet->execute();
-$all_retweets = $all_retweet->fetchALL();
+//全てのリツイート情報の取得
+$allRetweet = $db->query('SELECT m.name, m.picture, p.* FROM members m, posts p WHERE m.id=p.member_id ORDER BY p.created DESC');
+$allRetweet->execute();
+$allRetweets = $allRetweet->fetchALL();
 //※※追加機能リツイートここまで※※
 
 // htmlspecialcharsのショートカット
@@ -133,22 +132,22 @@ function makeLink($value)
 					<!-- リツイート　-->
 					<?php
 					//メンバーテーブルからリツイートした人の名前を取得（リツイート時に使用）
-					$myname_db = $db->prepare('SELECT retweet_post_id, members.name FROM members JOIN posts ON posts.member_id = members.id AND posts.id = ?');
-					$myname_db->execute(array($post['id']));
-					$myname = $myname_db->fetch();
-					$mynameretweet = '<i class="fas fa-retweet"></i>' . $myname['name'] . 'さんがリツイート';
+					$mynameDb = $db->prepare('SELECT retweet_post_id, members.name FROM members JOIN posts ON posts.member_id = members.id AND posts.id = ?');
+					$mynameDb->execute(array($post['id']));
+					$myname = $mynameDb->fetch();
+					$mynameRetweet = '<i class="fas fa-retweet"></i>' . $myname['name'] . 'さんがリツイート';
 
 					?>
 
 					<!-- リツイートした際に、リツイート元の画像とメッセージと名前を表示 -->
 					<?php
 					if ($post['retweet_post_id'] > 0) : ?>
-						<?php for ($i = 0; $i < count($all_retweets); $i++) : ?>
-							<?php if ($all_retweets[$i]['id'] === $post['retweet_post_id']) : ?>
+						<?php for ($i = 0; $i < count($allRetweets); $i++) : ?>
+							<?php if ($allRetweets[$i]['id'] === $post['retweet_post_id']) : ?>
 								<!-- もしも投稿idとリツイートしているidが一致したらリツイート元の本家のメッセージと名前を出力 & リツイートした人の名前を出力-->
-								<img src="member_picture/<?php echo h($all_retweets[$i]['picture']); ?>" width="48" height="48" alt="<?php echo h($all_retweets[$i]['name']); ?>" />
-								<p style="font-size:11px; color:#808000;"><?php echo $mynameretweet ?></p>
-								<p><?php echo makeLink(h($post['message'])); ?><span class="name">（<?php echo h($all_retweets[$i]['name']); ?>）</span>[<a href="index.php?res=<?php echo h($post['retweet_post_id']); ?>">Re</a>]</p>
+								<img src="member_picture/<?php echo h($allRetweets[$i]['picture']); ?>" width="48" height="48" alt="<?php echo h($allRetweets[$i]['name']); ?>" />
+								<p style="font-size:11px; color:#808000;"><?php echo $mynameRetweet ?></p>
+								<p><?php echo makeLink(h($post['message'])); ?><span class="name">（<?php echo h($allRetweets[$i]['name']); ?>）</span>[<a href="index.php?res=<?php echo h($post['retweet_post_id']); ?>">Re</a>]</p>
 							<?php endif; ?>
 						<?php endfor; ?>
 					<?php else : ?>
@@ -180,30 +179,27 @@ function makeLink($value)
 							?>
 							<!-- リツイート　-->
 							<?php
-							$retweetmyself = 0; //初期化
-							$retweetself = 0;
-							$retweetretweet = 0;
-							for ($i = 0; $i < count($retweetMessages_db); $i++) {
-								if ($retweetMessages_db[$i]['retweet_post_id'] === $post['id']) { //リツイートされた元のid == 投稿idが一致場合
-									$retweetmyself = $post['id']; //リツイート元（本家）でリツイート先を削除する際に使用
-
-								} else if ($retweetMessages_db[$i]['id'] === $post['id']) { //リツイートを投稿したidと投稿id一致で数値を入れる。
-									$retweetself = $post['id']; //リツイートした投稿自体を削除する際に使用
-
-								} else if ($retweetMessages_db[$i]['retweet_post_id'] === $post['retweet_post_id']) { //リツイートをリツイートするときの挙動
-									$retweetretweet = $post['retweet_post_id']; //既に自分がリツイート済みの場合に使用
-
+							$retweetMyself = 0; //初期化
+							$retweetSelf = 0;
+							$retweetRetweet = 0;
+							for ($i = 0; $i < count($retweetMessagesDb); $i++) {
+								if ($retweetMessagesDb[$i]['retweet_post_id'] === $post['id']) {
+									$retweetMyself = $post['id'];
+								} else if ($retweetMessagesDb[$i]['id'] === $post['id']) {
+									$retweetSelf = $post['id'];
+								} else if ($retweetMessagesDb[$i]['retweet_post_id'] === $post['retweet_post_id']) {
+									$retweetRetweet = $post['retweet_post_id'];
 								}
 							}
 							?>
 							<!-- リツイート削除 -->
-							<?php if ($retweetmyself === $post['id']) : //リツイート元（本家）でリツイート先を削除 
+							<?php if ($retweetMyself === $post['id']) : //リツイート元（本家）でリツイート先を削除 
 							?>
 								<a style="color:#0000FF;" href="retweet_delete.php?post_id=<?php echo h($post['id']); ?>"><i class="fas fa-retweet"></i></a>
-							<?php elseif ($retweetself === $post['id']) : //リツイートそのものを削除（リツイートの処理）
+							<?php elseif ($retweetSelf === $post['id']) : //リツイートそのものを削除（リツイートの処理）
 							?>
 								<a style="color:#0000FF;" href="retweet_delete.php?retweet_orig=<?php echo h($post['id']); ?>"><i class="fas fa-retweet"></i></a>
-							<?php elseif ($retweetretweet === $post['retweet_post_id']) : //既に自分がリツイート済みで、誰かが同じ投稿をリツイートしている場合、その誰かのリツイートボタンを押した場合、自分がリツートした投稿を削除　 //リツイート元のidを飛ばして現在ログインしているユーザーのリツイート元idと一致した場合に削除させる
+							<?php elseif ($retweetRetweet === $post['retweet_post_id']) : //既に自分がリツイート済みで、誰かが同じ投稿をリツイートしている場合、その誰かのリツイートボタンを押した場合、自分がリツートした投稿を削除
 							?>
 								<a style="color:#0000FF;" href="retweet_delete.php?post_id=<?php echo h($post['retweet_post_id']); ?>"><i class="fas fa-retweet"></i></a>
 							<?php else : ?>
@@ -212,73 +208,70 @@ function makeLink($value)
 							<?php endif; ?>
 
 							<?php //リツイート件数の表示
-							$retweet_db = $db->prepare('SELECT COUNT(*) FROM posts WHERE retweet_post_id > 0 AND retweet_post_id = ? OR retweet_post_id = ?'); //0はカウントしない
-							$retweet_db->bindParam(1, $post['retweet_post_id'], PDO::PARAM_INT);
-							$retweet_db->bindParam(2, $post['id'], PDO::PARAM_INT);
-							$retweet_db->execute();
-							$retweets_db = $retweet_db->fetch();
-							echo h($retweets_db['COUNT(*)']);
+							$retweetDb = $db->prepare('SELECT COUNT(*) FROM posts WHERE retweet_post_id > 0 AND retweet_post_id = ? OR retweet_post_id = ?'); //0はカウントしない
+							$retweetDb->bindParam(1, $post['retweet_post_id'], PDO::PARAM_INT);
+							$retweetDb->bindParam(2, $post['id'], PDO::PARAM_INT);
+							$retweetDb->execute();
+							$retweetsDb = $retweetDb->fetch();
+							echo h($retweetsDb['COUNT(*)']);
 							?>
 							<!-- リツイートここまで -->
 
 
-							<!--　いいね機能 $postはいいねをする投稿されたツイートのid $likeMessageは53行目で取得したもの $likeMessages_dbには自分がいいねしたツイートの値のみ入っている。-->
+							<!--　いいね機能ここから　-->
 							<?php
-							$likemyself = 0; //初期化
-							for ($i = 0; $i < count($likeMessages_db); $i++) {
-								if ($likeMessages_db[$i]['liked_post_id'] === $post['id']) { //liked_post_id:いいねされたメッセージid == いいねをするツイートのidだった場合　これらが共通する場合に変数にその値を代入。$likeMessages_db[$i]['liked_post_id']は２次元配列と連想配列。
-									$likemyself = $post['id'];
-									//echo '本家のいいね判定:';
-
-								} else if ($likeMessages_db[$i]['liked_post_id'] === $post['retweet_post_id']) { //いいねの投稿idとリツートidが一致した場合。
-									$retweet_delete_like = $post['retweet_post_id'];
-									//echo 'リツイートへいいねした場合の判定:';
+							$likeMyself = 0; //初期化
+							for ($i = 0; $i < count($likeMessagesDb); $i++) {
+								if ($likeMessagesDb[$i]['liked_post_id'] === $post['id']) { //本家のいいね判定
+									$likeMyself = $post['id'];
+								} else if ($likeMessagesDb[$i]['liked_post_id'] === $post['retweet_post_id']) { //リツイートへいいねした場合の判定
+									$retweetDeleteLike = $post['retweet_post_id'];
 								}
 							}
 
 							//リツイートした投稿について、リツイート元のidを変数に代入
 							if ($post['retweet_post_id'] > 0) {
-								for ($i = 0; $i < count($all_retweets); $i++) {
-									if ($all_retweets[$i]['id'] === $post['retweet_post_id']) {
-										$retweet_like = $post['retweet_post_id'];
+								for ($i = 0; $i < count($allRetweets); $i++) {
+									if ($allRetweets[$i]['id'] === $post['retweet_post_id']) {
+										$retweetLike = $post['retweet_post_id'];
 									}
 								}
 							}
 							?>
-							<!--　♥  $likemyselfには、自分がいいねした投稿の場合、いいねした投稿のidの数値が入っている。いいねしていなければidの値が無い為0になる。-->
-							<?php if ($likemyself > 0) : ?>
+							<!--　♥  -->
+							<?php if ($likeMyself > 0) : ?>
 								<a href="like_delete.php?post_id=<?php echo h($post['id']); ?>" style="font-size:18px; text-decoration:none; color:#FF0000;">&#9829;</a>
-							<?php elseif ($retweet_delete_like === $post['retweet_post_id']) : ?>
-								<!-- リツイートにいいねした場合、$retweet_delete_likeに値が入っている。$post['retweet_post_id']と一致すればリツイートへのいいねidを削除するリンクへ誘導-->
+							<?php elseif ($retweetDeleteLike === $post['retweet_post_id']) : ?>
+								<!-- リツイートにいいねすると、本家に-1 -->
 								<a href="like_delete.php?retweet_post_id=<?php echo h($post['retweet_post_id']); ?>" style="font-size:18px; text-decoration:none; color:#FF0000;">&#9829;</a>
 								<!-- ♡ -->
-							<?php elseif ($retweet_like === $post['retweet_post_id']) : ?>
-								<!-- リツイートでいいねすると、本家に+1される。-->
+							<?php elseif ($retweetLike === $post['retweet_post_id']) : ?>
+								<!-- リツイートでいいねすると、本家に+1 -->
 								<a href="like_add.php?retweet_post_id=<?php echo h($post['retweet_post_id']); ?>" style="font-size:12px; text-decoration:none; color:#FF0000;">&#9825;</a>
 							<?php else : ?>
 								<a href="like_add.php?post_id=<?php echo h($post['id']); ?>" style="font-size:12px; text-decoration:none; color:#FF0000;">&#9825;</a>
-								<!-- いいねここまで / $post['id']でliked_post_idを渡している。-->
 							<?php endif; ?>
+							<!-- いいね機能ここまで -->
 
 							<?php
 							if ($post['retweet_post_id'] > 0) {
-								for ($i = 0; $i < count($all_retweets); $i++) {
-									if ($all_retweets[$i]['id'] === $post['retweet_post_id']) {
+								for ($i = 0; $i < count($allRetweets); $i++) {
+									if ($allRetweets[$i]['id'] === $post['retweet_post_id']) {
 										//リツイートは、リツイート元のいいね数を出力する。
-										$likerecord_db = $db->prepare('SELECT liked_post_id, COUNT(*) FROM likes WHERE liked_post_id = ?');
-										$likerecord_db->bindParam(1, $retweet_like, PDO::PARAM_INT); ////bindparamで順次させている。（１番目はこれ、２番目はこれみたいな、、、）bindparamはSQLの「?」の可変の部分に値を渡して置換してくれる。
-										$likerecord_db->execute(); //実行 $post['id']は投稿されているツイートのid
-										$likerecords_db = $likerecord_db->fetch();
-										echo h($likerecords_db['COUNT(*)']);
+										$likerecordDb = $db->prepare('SELECT liked_post_id, COUNT(*) FROM likes WHERE liked_post_id = ?');
+										$likerecordDb->bindParam(1, $retweetLike, PDO::PARAM_INT);
+										$likerecordDb->execute();
+										$likerecordsDb = $likerecordDb->fetch();
+										echo h($likerecordsDb['COUNT(*)']);
 									}
 								}
 							} else {
 								//※※追加機能いいね※※ いいねした件数を各投稿idごとに取得して表示する。
-								$likerecord_db = $db->prepare('SELECT liked_post_id, COUNT(*) FROM likes WHERE liked_post_id = ?');
-								$likerecord_db->bindParam(1, $post['id'], PDO::PARAM_INT); ////bindparamで順次させている。（１番目はこれ、２番目はこれみたいな、、、）bindparamはSQLの「?」の可変の部分に値を渡して置換してくれる。
-								$likerecord_db->execute(); //実行 $post['id']は投稿されているツイートのid
-								$likerecords_db = $likerecord_db->fetch();
-								echo h($likerecords_db['COUNT(*)']);
+								$likerecordDb = $db->prepare('SELECT liked_post_id, COUNT(*) FROM likes WHERE liked_post_id = ?');
+								$likerecordDb->bindParam(1, $post['id'], PDO::PARAM_INT);
+								$likerecordDb->execute();
+								$likerecordsDb = $likerecordDb->fetch();
+								echo h($likerecordsDb['COUNT(*)']);
 							}
 							?>
 							</p>
