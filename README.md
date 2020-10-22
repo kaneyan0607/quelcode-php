@@ -1,6 +1,6 @@
 # PHP
 
-下記のようにブランチを切っています。
+下記のように4つのブランチを切っています。
 - feature/php-pre-challenge1<br>FizzBazz
 - feature/php-pre-challenge2<br>バブルソート
 - feature/php-pre-challenge3<br>GETパラメータ[target]から1以上の整数を受け取る<br>既にデータベースに保存されている数値の羅列を変数の配列に代入<br>GETパラメータで受け取った整数になる組み合わせを探し、JSON形式で出力<br>もし、GETパラメータ[target]値が1以上の整数ではない場合は、HTTP レスポンスステータスコード[400]で返却
